@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30723.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BrandingTool", "BrandingTool\BrandingTool.csproj", "{C8E562B2-5F92-4FD5-9608-A97EA0FE893C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PnP.Core", "PnP.Core", "{16ECD51F-3D51-4855-9C96-8F7AFEA68257}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OfficeDevPnP.Core", "C:\_Projects\GitHub\PnP\OfficeDevPnP.Core\OfficeDevPnP.Core\OfficeDevPnP.Core.csproj", "{F2077977-8EBF-409D-BBF4-8EFB328928A8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{894479C4-F54C-4BAE-989F-C5056969510F}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\NuGet.Config = .nuget\NuGet.Config
+		.nuget\NuGet.exe = .nuget\NuGet.exe
+		.nuget\NuGet.targets = .nuget\NuGet.targets
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{001C5B21-8ACA-4C3E-9DF1-6F5475B11C1C}"
+	ProjectSection(SolutionItems) = preProject
+		Instructions.txt = Instructions.txt
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug15|Any CPU = Debug15|Any CPU
+		Release|Any CPU = Release|Any CPU
+		Release15|Any CPU = Release15|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C8E562B2-5F92-4FD5-9608-A97EA0FE893C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C8E562B2-5F92-4FD5-9608-A97EA0FE893C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C8E562B2-5F92-4FD5-9608-A97EA0FE893C}.Debug15|Any CPU.ActiveCfg = Debug|Any CPU
+		{C8E562B2-5F92-4FD5-9608-A97EA0FE893C}.Debug15|Any CPU.Build.0 = Debug|Any CPU
+		{C8E562B2-5F92-4FD5-9608-A97EA0FE893C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C8E562B2-5F92-4FD5-9608-A97EA0FE893C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C8E562B2-5F92-4FD5-9608-A97EA0FE893C}.Release15|Any CPU.ActiveCfg = Release|Any CPU
+		{C8E562B2-5F92-4FD5-9608-A97EA0FE893C}.Release15|Any CPU.Build.0 = Release|Any CPU
+		{F2077977-8EBF-409D-BBF4-8EFB328928A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2077977-8EBF-409D-BBF4-8EFB328928A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F2077977-8EBF-409D-BBF4-8EFB328928A8}.Debug15|Any CPU.ActiveCfg = Debug15|Any CPU
+		{F2077977-8EBF-409D-BBF4-8EFB328928A8}.Debug15|Any CPU.Build.0 = Debug15|Any CPU
+		{F2077977-8EBF-409D-BBF4-8EFB328928A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F2077977-8EBF-409D-BBF4-8EFB328928A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F2077977-8EBF-409D-BBF4-8EFB328928A8}.Release15|Any CPU.ActiveCfg = Release15|Any CPU
+		{F2077977-8EBF-409D-BBF4-8EFB328928A8}.Release15|Any CPU.Build.0 = Release15|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F2077977-8EBF-409D-BBF4-8EFB328928A8} = {16ECD51F-3D51-4855-9C96-8F7AFEA68257}
+	EndGlobalSection
+EndGlobal
