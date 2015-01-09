@@ -7,12 +7,12 @@ using System.Collections.Specialized;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using OfficeDevPnP.Core;
-using System.Linq; 
-using System.Text; 
-using System.Xml; 
+using System.Linq;
+using System.Text;
+using System.Xml;
 using System.Xml.Linq;
 
-namespace BrandingTool
+namespace BrandingTool_Cloud
 {
     class Program
     {
@@ -228,7 +228,7 @@ namespace BrandingTool
             var fileName = Path.GetFileName(filePath);
             var searchPattern = (String.IsNullOrEmpty(fileName) || fileName == "*") ? "*.*" : fileName;
             var searchOption = (String.IsNullOrEmpty(fileName) || fileName == "*") ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-            string[] fileList = Directory.GetFiles(Path.GetDirectoryName(filePath),searchPattern, searchOption);
+            string[] fileList = Directory.GetFiles(Path.GetDirectoryName(filePath), searchPattern, searchOption);
             string rootFolder = Path.GetDirectoryName(filePath);
             foreach (var file in fileList)
             {
@@ -241,8 +241,8 @@ namespace BrandingTool
                 }
                 else
                 {
-                    string newFolders = file.Substring(rootFolder.Length+1, file.Length - rootFolder.Length - Path.GetFileName(file).Length - 1).Replace("\\", "/").TrimEnd(trimChars);
-                    fullFolder = String.Concat(String.IsNullOrEmpty(folder) ? "" : folder + "/",newFolders);
+                    string newFolders = file.Substring(rootFolder.Length + 1, file.Length - rootFolder.Length - Path.GetFileName(file).Length - 1).Replace("\\", "/").TrimEnd(trimChars);
+                    fullFolder = String.Concat(String.IsNullOrEmpty(folder) ? "" : folder + "/", newFolders);
                     if (fullFolder.Length > 0)
                     {
                         destFolder = clientContext.Web.EnsureFolder(library.RootFolder, fullFolder);
