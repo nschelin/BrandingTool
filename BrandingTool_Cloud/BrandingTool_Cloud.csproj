@@ -105,6 +105,7 @@ cd $(TargetDir)
 copy $(TargetName).exe temp.exe
 ..\..\..\packages\ilmerge.2.14.1208\tools\ilmerge /out:$(TargetName).exe temp.exe OfficeDevPnP.Core.dll
 del temp.exe
+copy $(TargetFilename) \\Don-LT\Data\BrandingTool
 )
 </PostBuildEvent>
   </PropertyGroup>
