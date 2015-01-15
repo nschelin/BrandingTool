@@ -1,1 +1,4 @@
-vv
+TODO List:
+
+For each create/upload event, create a way to reverse it.
+Create undo option for entire package

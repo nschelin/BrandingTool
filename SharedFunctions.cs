@@ -7,135 +7,24 @@ using System.Collections.Specialized;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using OfficeDevPnP.Core;
-using System.Linq; 
-using System.Text; 
-using System.Xml; 
+using System.Linq;
+using System.Text;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace BrandingTool
 {
-    class Program
+    static class SharedFunctions
     {
         internal static char[] trimChars = new char[] { '/' };
-        internal static string defaultFile = ".\\Default.xml";
-
-        static void Main(string[] args)
-        {
-
-            Console.WriteLine("BRANDING TOOL FOR SHAREPOINT ONLINE(OFFICE 365)");
-            Console.WriteLine("   by Don Kirkham{0}", Environment.NewLine);
-
-            string settingsFile = defaultFile;
-            if (args.Length > 0)
-            {
-                settingsFile = args[0];
-            }
-            if (!System.IO.File.Exists(settingsFile))
-            {
-                Console.WriteLine("Settings file not found: {0}\r\n", settingsFile);
-                Console.WriteLine(String.Concat("\tThe Settings file is a special XML file that can be {0}",
-                                                "\tpassed as a command line parameter. The default file is {0}",
-                                                "\t\"{1}\" located in the same folder where {0}",
-                                                "\t\"BrandingTool.exe\" is executed from.")
-                                                , Environment.NewLine, defaultFile);
-                ExitProgram();
-            }
-            Console.WriteLine("Settings File: {0}{1}", settingsFile, Environment.NewLine);
-
-            var branding = XDocument.Load(settingsFile).Element("branding");
-            if (branding == null)
-            {
-                Console.WriteLine("Settings file not valid: {0}\r\n", settingsFile);
-                Console.WriteLine("\tThe settings file must have a \"<branding>\" node.");
-                ExitProgram();
-            }
-            string defaultRootPath = Path.GetFullPath(settingsFile);
-            defaultRootPath = defaultRootPath.Substring(0, defaultRootPath.LastIndexOf("\\") + 1);
-
-            string defaultUsername = "";
-            string defaultPassword = "";
-            var defaultCredentials = branding.Element("credentials");
-            if (defaultCredentials != null)
-            {
-                defaultUsername = defaultCredentials.Attribute("username") == null ? "" : defaultCredentials.Attribute("username").Value;
-                defaultPassword = defaultCredentials.Attribute("password") == null ? "" : defaultCredentials.Attribute("password").Value;
-            }
-            foreach (var site in branding.Descendants("site"))
-            {
-                var siteUrl = GetSiteUrl(GetAttribute(site, "url")).TrimEnd(trimChars) + "/";
-                site.Attribute("url").SetValue(siteUrl);
-                var siteUsername = site.Attribute("username") == null ? defaultUsername : site.Attribute("username").Value;
-                var sitePassword = site.Attribute("password") == null ? defaultPassword : site.Attribute("password").Value;
-
-                var authManager = new AuthenticationManager();
-                using (ClientContext clientContext = authManager.GetSharePointOnlineAuthenticatedContextTenant(siteUrl, siteUsername, sitePassword))
-                {
-                    //clientContext.Credentials = new SharePointOnlineCredentials(GetUserName(siteUsername), GetPassword(sitePassword));
-                    Console.WriteLine("{1}Updating Branding at {0}", siteUrl, Environment.NewLine);
-                    clientContext.Load(clientContext.Web);
-                    clientContext.ExecuteQuery();
-
-                    var tasklist = site;
-                    //if (((XElement)site.FirstNode).Name.LocalName.ToLower() == "undobranding")
-                    //{
-                    //    site.FirstNode.Remove();
-                    //    var reverseTasks = new XElement("site");
-                    //    //reverseTasks.FirstNode.Attribute("url") = tasklist.Attribute("url");
-                    //    Stack<XElement> tasks = new Stack<XElement>(); ;
-                    //    foreach (var node in site.Descendants())
-                    //    {
-                    //        tasks.Push(node);
-                    //    }
-                    //    foreach (var node in tasks)
-                    //    {
-                    //        reverseTasks.Add(node);
-                    //    }
-                    //    tasklist = reverseTasks;
-                    //    Console.WriteLine("\r\n\r\n\tHaven't written the undo function yet, but it's coming!");
-                    //    //ExitProgram();
-                    //}
-
-                    foreach (XElement element in tasklist.Descendants())
-                    {
-                        element.SetAttributeValue("rootPath", defaultRootPath);
-                        switch (element.Name.LocalName.ToLower())
-                        {
-                            case "uploadmasterpage":
-                                UploadMasterPage(clientContext, element);
-                                break;
-                            case "uploadpagelayout":
-                                UploadPageLayout(clientContext, element);
-                                break;
-                            case "uploadfile":
-                                UploadFile(clientContext, element);
-                                break;
-                            case "uploadtheme":
-                                UploadTheme(clientContext, element);
-                                break;
-                            case "createtheme":
-                                CreateThemeByRelativeUrl(clientContext, element);
-                                break;
-                            case "applytheme":
-                                ApplyTheme(clientContext, element);
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                }
-            }
 
 
-            Console.WriteLine("{0}{0}Done!", Environment.NewLine);
-            ExitProgram();
-        }
-
-        private static void UploadMasterPage(ClientContext clientContext, XElement element)
+        public static void UploadMasterPage(ClientContext clientContext, XElement element)
         {
             string rootPath = GetAttribute(element, "rootPath");
             string masterFilePath = GetFullPath(rootPath, GetAttribute(element, "masterFilePath"));
             string previewFilePath = GetFullPath(rootPath, GetAttribute(element, "previewFilePath"));
-            var folder = GetAttribute(element, "folder", false).TrimEnd(trimChars);
+            var folder = "";  // GetAttribute(element, "folder", false).TrimEnd(trimChars);
             if (folder.Length > 0)
                 folder += "/";
             var title = GetAttribute(element, "title", true);
@@ -169,6 +58,41 @@ namespace BrandingTool
                     }
                 }
                 clientContext.Web.DeployMasterPage(masterFilePath, title, description, uiVersion, defaultCssFile, folder);
+                //Change Content Type to HTML Master Page
+                var web = clientContext.Web;
+                string fileName = Path.GetFileName(masterFilePath);
+
+                // Get the path to the file which we are about to deploy
+                List masterPageGallery = web.GetCatalog((int)ListTemplateType.MasterPageCatalog);
+                Folder rootFolder = masterPageGallery.RootFolder;
+                web.Context.Load(masterPageGallery);
+                web.Context.Load(rootFolder);
+                web.Context.ExecuteQuery();
+
+                string masterFileUrl = UrlUtility.Combine(rootFolder.ServerRelativeUrl,folder, fileName);
+                Microsoft.SharePoint.Client.File masterFile = web.GetFileByServerRelativeUrl(masterFileUrl);
+                web.Context.Load(masterFile);
+                web.Context.ExecuteQuery();
+                
+                var listItem = masterFile.ListItemAllFields;
+                if (masterPageGallery.ForceCheckout || masterPageGallery.EnableVersioning)
+                {
+                    if (masterFile.CheckOutType == CheckOutType.None)
+                    {
+                        masterFile.CheckOut();
+                    }
+                }
+
+                // Set content type as master page
+                listItem["ContentTypeId"] = Constants.HTMLMASTERPAGE_CONTENT_TYPE;
+                listItem.Update();
+                if (masterPageGallery.ForceCheckout || masterPageGallery.EnableVersioning)
+                {
+                    masterFile.CheckIn(string.Empty, CheckinType.MajorCheckIn);
+                    listItem.File.Publish(string.Empty);
+                }
+                web.Context.Load(listItem);
+                web.Context.ExecuteQuery();
             }
             if (!String.IsNullOrEmpty(previewFilePath))
             {
@@ -185,11 +109,11 @@ namespace BrandingTool
             }
         }
 
-        private static void UploadPageLayout(ClientContext clientContext, XElement element)
+        public static void UploadPageLayout(ClientContext clientContext, XElement element)
         {
             string rootPath = GetAttribute(element, "rootPath");
             string filePath = GetFullPath(rootPath, GetAttribute(element, "filePath", true));
-            string folder = GetAttribute(element, "folder", false).TrimEnd(trimChars);
+            string folder = "";  // GetAttribute(element, "folder", false).TrimEnd(trimChars);
             string title = GetAttribute(element, "title");
             string description = GetAttribute(element, "description");
             string associatedContentTypeID = GetAttribute(element, "associatedContentTypeID", true);
@@ -197,7 +121,7 @@ namespace BrandingTool
             clientContext.Web.DeployPageLayout(filePath, title, description, associatedContentTypeID, folder);
         }
 
-        private static void UploadFile(ClientContext clientContext, XElement element)
+        public static void UploadFile(ClientContext clientContext, XElement element)
         {
             string rootPath = GetAttribute(element, "rootPath");
             string filePath = GetFullPath(rootPath, GetAttribute(element, "filePath", true));
@@ -228,7 +152,7 @@ namespace BrandingTool
             var fileName = Path.GetFileName(filePath);
             var searchPattern = (String.IsNullOrEmpty(fileName) || fileName == "*") ? "*.*" : fileName;
             var searchOption = (String.IsNullOrEmpty(fileName) || fileName == "*") ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-            string[] fileList = Directory.GetFiles(Path.GetDirectoryName(filePath),searchPattern, searchOption);
+            string[] fileList = Directory.GetFiles(Path.GetDirectoryName(filePath), searchPattern, searchOption);
             string rootFolder = Path.GetDirectoryName(filePath);
             foreach (var file in fileList)
             {
@@ -241,8 +165,8 @@ namespace BrandingTool
                 }
                 else
                 {
-                    string newFolders = file.Substring(rootFolder.Length+1, file.Length - rootFolder.Length - Path.GetFileName(file).Length - 1).Replace("\\", "/").TrimEnd(trimChars);
-                    fullFolder = String.Concat(String.IsNullOrEmpty(folder) ? "" : folder + "/",newFolders);
+                    string newFolders = file.Substring(rootFolder.Length + 1, file.Length - rootFolder.Length - Path.GetFileName(file).Length - 1).Replace("\\", "/").TrimEnd(trimChars);
+                    fullFolder = String.Concat(String.IsNullOrEmpty(folder) ? "" : folder + "/", newFolders);
                     if (fullFolder.Length > 0)
                     {
                         destFolder = clientContext.Web.EnsureFolder(library.RootFolder, fullFolder);
@@ -253,7 +177,7 @@ namespace BrandingTool
             }
         }
 
-        private static void UploadTheme(ClientContext clientContext, XElement element)
+        public static void UploadTheme(ClientContext clientContext, XElement element)
         {
             string rootPath = GetAttribute(element, "rootPath");
             string themeName = GetAttribute(element, "themeName", true);
@@ -265,7 +189,7 @@ namespace BrandingTool
             clientContext.Web.DeployThemeToWeb(themeName, colorFilePath, fontFilePath, backgroundImagePath, masterPageName);
         }
 
-        private static void CreateThemeByRelativeUrl(ClientContext clientContext, XElement element)
+        public static void CreateThemeByRelativeUrl(ClientContext clientContext, XElement element)
         {
             string webUrl = GetAttribute(element, "webUrl");
             string themeName = GetAttribute(element, "themeName", true);
@@ -284,7 +208,7 @@ namespace BrandingTool
             destinationWeb.DeployThemeToWeb(themeName, colorFileUrl, backgroundImageUrl, fontFileUrl, masterPageName);
         }
 
-        private static void ApplyTheme(ClientContext clientContext, XElement element)
+        public static void ApplyTheme(ClientContext clientContext, XElement element)
         {
             string themeName = GetAttribute(element, "themeName", true);
             string subWebUrl = GetAttribute(element, "subWebUrl");
@@ -294,7 +218,7 @@ namespace BrandingTool
             ApplyThemeToWeb(clientContext, themeName, subWebUrl, applyToSubWebs, targetWeb);
         }
 
-        private static void ApplyThemeToWeb(ClientContext clientContext, string themeName, string subWebUrl, bool applyToSubWebs, Web targetWeb)
+        public static void ApplyThemeToWeb(ClientContext clientContext, string themeName, string subWebUrl, bool applyToSubWebs, Web targetWeb)
         {
             if (!String.IsNullOrEmpty(subWebUrl))
             {
@@ -317,14 +241,14 @@ namespace BrandingTool
         }
 
         #region "helper functions"
-        private static void ExitProgram()
+        public static void ExitProgram()
         {
             Console.Write("{0}{0}Press [Enter] to exit program . . . ", Environment.NewLine);
             Console.ReadLine();
             Environment.Exit(0);
         }
 
-        private static string GetSiteUrl(string strSiteUrl = "")
+        public static string GetSiteUrl(string strSiteUrl = "")
         {
             try
             {
@@ -342,7 +266,7 @@ namespace BrandingTool
             return strSiteUrl;
         }
 
-        private static string GetUserName(string strUserName = "")
+        public static string GetUserName(string strUserName = "")
         {
             try
             {
@@ -360,7 +284,7 @@ namespace BrandingTool
             return strUserName;
         }
 
-        private static SecureString GetPassword(string strPwd = "")
+        public static SecureString GetPassword(string strPwd = "")
         {
             SecureString sStrPwd = new SecureString();
 
@@ -406,7 +330,7 @@ namespace BrandingTool
             return sStrPwd;
         }
 
-        private static string GetAttribute(XElement element, string attribute, bool required = false)
+        public static string GetAttribute(XElement element, string attribute, bool required = false)
         {
             if (element.Attribute(attribute) == null)
             {
@@ -420,7 +344,7 @@ namespace BrandingTool
             return element.Attribute(attribute).Value;
         }
 
-        private static string GetFullPath(string rootPath, string filePath)
+        public static string GetFullPath(string rootPath, string filePath)
         {
             if (filePath.Length < 2 || filePath.Substring(1, 1) == ":") return filePath; //Already a full path
             return Path.Combine(rootPath, filePath);
@@ -430,4 +354,9 @@ namespace BrandingTool
         #endregion
 
     }
+
+        public static partial class Constants
+        {
+            internal const string HTMLMASTERPAGE_CONTENT_TYPE = "0x0101000F1C8B9E0EB4BE489F09807B2C53288F0054AD6EF48B9F7B45A142F8173F171BD10003D357F861E29844953D5CAA1D4D8A3A";
+        }
 }

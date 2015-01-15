@@ -27,22 +27,22 @@
 
   -->
 <branding>
-  <credentials username="dkirkham@tekfocuslab.com" password="Dtacjlk!1" />
-  <site url="https://tekfocuslab.sharepoint.com/sites/don" >
+  <credentials username="don@Dev1.local" password="P@$$w0rd" />
+  <site url="http://sps2013-42/sites/ancestry" >
     <!--<undoBranding/>-->
-    <uploadMasterPage masterFilePath="Ancestry\masterpage\Ancestry\Ancestry.html" previewFilePath ="Ancestry\masterpage\Ancestry\Ancestry.preview" folder="Ancestry" title="Ancestry.com Master page" description="Master Page used for Ancestry / SharePoint Online" />
+    <uploadMasterPage masterFilePath="C:\_Projects\BrandingTool\Ancestry\masterpage\Ancestry\Ancestry15.html" previewFilePath ="C:\_Projects\BrandingTool\Ancestry\masterpage\Ancestry\Ancestry.preview" title="Ancestry.com Master page" description="Master Page used for Ancestry / SharePoint Online" />
 
-    <uploadPageLayout filePath="Ancestry\masterpage\Ancestry\Ancestry_PL1.aspx" folder="Ancestry" title="Ancestry Layout 1" description="" associatedContentTypeID="0x010100C568DB52D9D0A14D9B2FDCC96666E9F2007948130EC3DB064584E219954237AF390064DEA0F50FC8C147B0B6EA0636C4A7D4" />
-    <uploadPageLayout filePath="Ancestry\masterpage\Ancestry\Ancestry_PL2.aspx" folder="Ancestry" title="Ancestry Layout 2" description="" associatedContentTypeID="0x010100C568DB52D9D0A14D9B2FDCC96666E9F2007948130EC3DB064584E219954237AF390064DEA0F50FC8C147B0B6EA0636C4A7D4" />
+    <uploadPageLayout filePath="C:\_Projects\BrandingTool\Ancestry\masterpage\Ancestry\Ancestry_PL1.aspx" title="Ancestry Layout 1" description="" associatedContentTypeID="0x010100C568DB52D9D0A14D9B2FDCC96666E9F2007948130EC3DB064584E219954237AF390064DEA0F50FC8C147B0B6EA0636C4A7D4" />
+    <uploadPageLayout filePath="C:\_Projects\BrandingTool\Ancestry\masterpage\Ancestry\Ancestry_PL2.aspx" title="Ancestry Layout 2" description="" associatedContentTypeID="0x010100C568DB52D9D0A14D9B2FDCC96666E9F2007948130EC3DB064584E219954237AF390064DEA0F50FC8C147B0B6EA0636C4A7D4" />
 
-    <uploadFile filePath="Ancestry\masterpage\Ancestry\*" library="[MasterPage]" folder="Ancestry" />
+    <uploadFile filePath="C:\_Projects\BrandingTool\Ancestry\masterpage\Ancestry\*" library="[MasterPage]" folder="Ancestry" />
 
-    <uploadTheme themeName="Ancestry" masterPageName="Ancestry/Ancestry.master" colorFilePath="Ancestry\theme\ancestry.spcolor" backgroundImagePath="" fontFilePath="" />
+    <uploadTheme themeName="Ancestry" masterPageName="Ancestry15.master" colorFilePath="C:\_Projects\BrandingTool\Ancestry\theme\ancestry.spcolor" backgroundImagePath="" fontFilePath="" />
 
     <!--<uploadFile filePath="Ancestry\theme\ancestry.spcolor" library="[Theme]" folder="" /> 
-    <createTheme webUrl="" themeName="Ancestry" masterPageName="Ancestry/Ancestry.master" colorFileUrl="ancestry.spcolor" backgroundImageUrl="" fontFileUrl="" />-->
+    <createTheme webUrl="" themeName="Ancestry" masterPageName="AncestryOnPrem.master" colorFileUrl="ancestry.spcolor" backgroundImageUrl="" fontFileUrl="" />-->
 
-    <applyTheme themeName="Ancestry" subWebUrl="" applyToSubWebs="true"/>
+    <!--<applyTheme themeName="Ancestry" subWebUrl="" applyToSubWebs="true"/>-->
   </site>
 
 </branding>
