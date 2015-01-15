@@ -16,7 +16,7 @@ namespace BrandingTool
     class Program
     {
         internal static char[] trimChars = new char[] { '/' };
-        internal static string defaultFile = ".\\Default.xml";
+        internal static string defaultFile = System.AppDomain.CurrentDomain.FriendlyName.Replace(".vshost","").Replace(".exe", ".xml");
 
         static void Main(string[] args)
         {
@@ -35,8 +35,8 @@ namespace BrandingTool
                 Console.WriteLine(String.Concat("\tThe Settings file is a special XML file that can be {0}",
                                                 "\tpassed as a command line parameter. The default file is {0}",
                                                 "\t\"{1}\" located in the same folder where {0}",
-                                                "\t\"BrandingTool.exe\" is executed from.")
-                                                , Environment.NewLine, defaultFile);
+                                                "\t\"{2}\" is executed from.")
+                                                , Environment.NewLine, defaultFile, System.AppDomain.CurrentDomain.FriendlyName.Replace(".vshost", ""));
                 SharedFunctions.ExitProgram();
             }
             Console.WriteLine("Settings File: {0}{1}", settingsFile, Environment.NewLine);
@@ -66,11 +66,27 @@ namespace BrandingTool
                 var siteUsername = site.Attribute("username") == null ? defaultUsername : site.Attribute("username").Value;
                 var sitePassword = site.Attribute("password") == null ? defaultPassword : site.Attribute("password").Value;
 
-                var authManager = new AuthenticationManager();
-                using (ClientContext clientContext = authManager.GetNetworkCredentialAuthenticatedContext(siteUrl, "Don", sitePassword,"DEV1.local"))
+                string rootPath = SharedFunctions.GetAttribute(site, "rootPath");
+                if (rootPath != "") 
+                    defaultRootPath = rootPath;
+
+                Console.WriteLine("Updating Branding at {0}", siteUrl);
+                try
                 {
-                    //clientContext.Credentials = new SharePointOnlineCredentials(GetUserName(siteUsername), GetPassword(sitePassword));
-                    Console.WriteLine("{1}Updating Branding at {0}", siteUrl, Environment.NewLine);
+                    var am = new AuthenticationManager();
+                    var cc = am.GetNetworkCredentialAuthenticatedContext(siteUrl, siteUsername.Substring(0, siteUsername.IndexOf("@")), sitePassword, siteUsername.Substring(siteUsername.IndexOf("@") + 1));
+                    cc.ExecuteQuery();
+                    cc.Dispose();
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("{1}Login failed for \"{0}\"",siteUsername, Environment.NewLine);
+                    SharedFunctions.ExitProgram();
+                }
+
+                var authManager = new AuthenticationManager();
+                using (ClientContext clientContext = authManager.GetNetworkCredentialAuthenticatedContext(siteUrl, siteUsername.Substring(0, siteUsername.IndexOf("@")), sitePassword, siteUsername.Substring(siteUsername.IndexOf("@")+1)))
+                {
                     clientContext.Load(clientContext.Web);
                     clientContext.ExecuteQuery();
 

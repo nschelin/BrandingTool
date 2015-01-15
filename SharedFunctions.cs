@@ -69,11 +69,11 @@ namespace BrandingTool
                 web.Context.Load(rootFolder);
                 web.Context.ExecuteQuery();
 
-                string masterFileUrl = UrlUtility.Combine(rootFolder.ServerRelativeUrl,folder, fileName);
+                string masterFileUrl = UrlUtility.Combine(rootFolder.ServerRelativeUrl, folder, fileName);
                 Microsoft.SharePoint.Client.File masterFile = web.GetFileByServerRelativeUrl(masterFileUrl);
                 web.Context.Load(masterFile);
                 web.Context.ExecuteQuery();
-                
+
                 var listItem = masterFile.ListItemAllFields;
                 if (masterPageGallery.ForceCheckout || masterPageGallery.EnableVersioning)
                 {
@@ -137,7 +137,7 @@ namespace BrandingTool
                     clientContext.ExecuteQuery();
                     break;
                 case "[theme]":
-                    folder = "15/"; //al files in the Theme folder have to be put in the uiVersion folder
+                    folder = "15/"; //all files in the Theme folder have to be put in the uiVersion folder
                     libraryName = "[Theme Gallery]";
                     library = clientContext.Web.GetCatalog((int)ListTemplateType.ThemeCatalog);
                     clientContext.Load(library);
@@ -224,10 +224,25 @@ namespace BrandingTool
             {
                 targetWeb = clientContext.Site.OpenWeb(subWebUrl);
             }
+            var rootWeb = clientContext.Site.RootWeb;
             clientContext.Load(targetWeb);
+            clientContext.Load(rootWeb);
             clientContext.ExecuteQuery();
+            if (!(rootWeb.Url == targetWeb.Url || targetWeb.WebTemplate != "CMSPUBLISHING")) return;
             Console.WriteLine(" - Applying Composed Look \"{0}\" to {1}", themeName, targetWeb.ServerRelativeUrl);
-            targetWeb.SetThemeToSubWeb(clientContext.Web, themeName);
+            if (!targetWeb.ComposedLookExists(themeName))
+            {
+                if (rootWeb.ComposedLookExists(themeName))
+                {
+                    var cLook = clientContext.Site.RootWeb.GetComposedLook(themeName);
+                    targetWeb.CreateComposedLookByUrl(themeName, cLook.Theme, cLook.Font, cLook.BackgroundImage, cLook.MasterPage);
+                }
+                else
+                {
+                    Console.WriteLine("Composed Look \"{0}\" not found.", themeName);
+                }
+            }
+            targetWeb.SetComposedLookByUrl(themeName);
             if (applyToSubWebs)
             {
                 WebCollection webs = targetWeb.Webs;
@@ -252,15 +267,15 @@ namespace BrandingTool
         {
             try
             {
-                Console.Write("SharePoint Site Url: ");
                 if (String.IsNullOrEmpty(strSiteUrl))
+                {
+                    Console.Write("SharePoint Site Url: ");
                     strSiteUrl = Console.ReadLine();
-                else
-                    Console.WriteLine(strSiteUrl);
+                }
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                Console.WriteLine("SharePoint Site Url: {0}", e.Message);
                 strSiteUrl = string.Empty;
             }
             return strSiteUrl;
@@ -346,8 +361,8 @@ namespace BrandingTool
 
         public static string GetFullPath(string rootPath, string filePath)
         {
-            if (filePath.Length < 2 || filePath.Substring(1, 1) == ":") return filePath; //Already a full path
-            return Path.Combine(rootPath, filePath);
+            if (filePath.Length < 2 || filePath.Substring(1, 1) == ":" | filePath.StartsWith("\\\\")) return filePath; //Already a full path
+            return Path.Combine(rootPath, filePath.TrimStart('\\'));
         }
 
 
@@ -355,8 +370,8 @@ namespace BrandingTool
 
     }
 
-        public static partial class Constants
-        {
-            internal const string HTMLMASTERPAGE_CONTENT_TYPE = "0x0101000F1C8B9E0EB4BE489F09807B2C53288F0054AD6EF48B9F7B45A142F8173F171BD10003D357F861E29844953D5CAA1D4D8A3A";
-        }
+    public static partial class Constants
+    {
+        internal const string HTMLMASTERPAGE_CONTENT_TYPE = "0x0101000F1C8B9E0EB4BE489F09807B2C53288F0054AD6EF48B9F7B45A142F8173F171BD10003D357F861E29844953D5CAA1D4D8A3A";
+    }
 }

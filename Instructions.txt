@@ -1,4 +1,24 @@
-TODO List:
-
-For each create/upload event, create a way to reverse it.
-Create undo option for entire package
+  INSTRUCTIONS
+      If site url, username or password are missing or blank, the app will prompt user for information
+      
+      Explanation of element attributes:
+        filePath  : this is the path to the file to be uploaded, including the filename and extension. If can be an absolute path or relative(~) from the location of this settings file
+        folder: this is the subfolder path from the root of the library where the file is uploaded
+        library : the library name where the file is to be uploaded. Not needed for masterpage, pagelayout, and theme elements
+        associatedContentTypeId :
+              Article Page         :  0x010100C568DB52D9D0A14D9B2FDCC96666E9F2007948130EC3DB064584E219954237AF3900242457EFB8B24247815D688C526CD44D
+              Welcome Page         :  0x010100C568DB52D9D0A14D9B2FDCC96666E9F2007948130EC3DB064584E219954237AF390064DEA0F50FC8C147B0B6EA0636C4A7D4
+              Catelog Item - Reuse :  0x010100C568DB52D9D0A14D9B2FDCC96666E9F2007948130EC3DB064584E219954237AF3900B46186789C3140CC85BE610336E86BBB
+              Enterprise Wiki Page :  0x010100C568DB52D9D0A14D9B2FDCC96666E9F2007948130EC3DB064584E219954237AF39004C1F8B46085B4D22B1CDC3DE08CFFB9C
+              Error Page           :  0x010100C568DB52D9D0A14D9B2FDCC96666E9F2007948130EC3DB064584E219954237AF3900796F542FC5E446758C697981E370458C
+              Project Page         :  0x010100C568DB52D9D0A14D9B2FDCC96666E9F2007948130EC3DB064584E219954237AF39004C1F8B46085B4D22B1CDC3DE08CFFB9C0055EF50AAFF2E4BADA437E4BAE09A30F8
+              Redirect Page        :  0x010100C568DB52D9D0A14D9B2FDCC96666E9F2007948130EC3DB064584E219954237AF3900FD0E870BA06948879DBD5F9813CD8799
+        masterPageName:  relative path from root of the Master Page Gallery, including subfolder(s).  e.g., <folder>/name.master
+        
+    Element Syntax:
+    <uploadMasterPage filePath="required" folder="optional" title="required" description="optional" />
+    <uploadPageLayout filePath="required" folder="optional" title="required" description="optional" associatedContentTypeID="required" />
+    <uploadFile filePath="Ancestry\masterpage\Ancestry\bootstrap\css\bootstrap.css" library="[MasterPage]" folder="Ancestry/bootstrap/css" />
+    <uploadTheme themeName="required" masterPageName="required" colorFilePath="optional" backgroundImagePath="optional" fontFilePath="optional" />
+    <createTheme themeName="required" masterPageName="required" colorFileUrl="" backgroundImageUrl="" fontFileUrl="" />
+    <applyTheme name="required" webUrl="" applyToSubWeb="true"/>
