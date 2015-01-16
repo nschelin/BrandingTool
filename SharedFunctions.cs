@@ -22,7 +22,12 @@ namespace BrandingTool
 
         public static void RunProgram(string[] args, bool OnPrem = false)
         {
-            Console.WriteLine("BRANDING TOOL FOR SHAREPOINT ONLINE(OFFICE 365)");
+            if (OnPrem)
+                Console.WriteLine("BRANDING TOOL FOR SHAREPOINT ON PREMISES");
+            else
+                Console.WriteLine("BRANDING TOOL FOR SHAREPOINT ONLINE(OFFICE 365)");
+
+            
             Console.WriteLine("   by Don Kirkham{0}", Environment.NewLine);
 
             string settingsFile = defaultFile;

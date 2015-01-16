@@ -23,9 +23,9 @@ namespace BrandingTool
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error Occured{0}", Environment.NewLine);
+                Console.WriteLine("{0}ERROR OCCURED{0}", Environment.NewLine);
                 Console.WriteLine("{0}{1}", ex.Message, Environment.NewLine);
-                Console.WriteLine("{0}{1}", ex.StackTrace, Environment.NewLine);
+                //Console.WriteLine("{0}{1}", ex.StackTrace, Environment.NewLine);
                 SharedFunctions.ExitProgram();
             }
         }
