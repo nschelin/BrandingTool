@@ -3,14 +3,7 @@ using System.IO;
 using System.Security;
 using System.Xml.Linq;
 using Microsoft.SharePoint.Client;
-using System.Collections.Specialized;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using OfficeDevPnP.Core;
-using System.Linq;
-using System.Text;
-using System.Xml;
-using System.Xml.Linq;
 
 namespace BrandingTool
 {
@@ -27,7 +20,7 @@ namespace BrandingTool
             else
                 Console.WriteLine("BRANDING TOOL FOR SHAREPOINT ONLINE(OFFICE 365)");
 
-            
+
             Console.WriteLine("   by Don Kirkham{0}", Environment.NewLine);
 
             string settingsFile = defaultFile;
@@ -87,7 +80,6 @@ namespace BrandingTool
             SharedFunctions.ExitProgram();
         }
 
-
         private static void Process_Cloud(string defaultRootPath, System.Xml.Linq.XElement site, string siteUrl, string siteUsername, string sitePassword)
         {
             Console.WriteLine("Updating Branding at {0}", siteUrl);
@@ -110,7 +102,7 @@ namespace BrandingTool
                 clientContext.Load(clientContext.Web);
                 clientContext.ExecuteQuery();
 
-                Update(defaultRootPath, site, clientContext);
+                ProcessItems(defaultRootPath, site, clientContext);
             }
         }
 
@@ -136,11 +128,11 @@ namespace BrandingTool
                 clientContext.Load(clientContext.Web);
                 clientContext.ExecuteQuery();
 
-                Update(defaultRootPath, site, clientContext);
+                ProcessItems(defaultRootPath, site, clientContext);
             }
         }
 
-        private static void Update(string defaultRootPath, System.Xml.Linq.XElement site, ClientContext clientContext)
+        private static void ProcessItems(string defaultRootPath, System.Xml.Linq.XElement site, ClientContext clientContext)
         {
             var tasklist = site;
             //if (((XElement)site.FirstNode).Name.LocalName.ToLower() == "undobranding")
@@ -180,7 +172,7 @@ namespace BrandingTool
                         SharedFunctions.UploadTheme(clientContext, element);
                         break;
                     case "createtheme":
-                        SharedFunctions.CreateThemeByRelativeUrl(clientContext, element);
+                        SharedFunctions.CreateTheme(clientContext, element);
                         break;
                     case "applytheme":
                         SharedFunctions.ApplyTheme(clientContext, element);
@@ -191,12 +183,12 @@ namespace BrandingTool
             }
         }
 
-        public static void UploadMasterPage(ClientContext clientContext, XElement element)
+        private static void UploadMasterPage(ClientContext clientContext, XElement element)
         {
             string rootPath = GetAttribute(element, "rootPath");
             string masterFilePath = GetFullPath(rootPath, GetAttribute(element, "masterFilePath"));
             string previewFilePath = GetFullPath(rootPath, GetAttribute(element, "previewFilePath"));
-            var folder = "";  // GetAttribute(element, "folder", false).TrimEnd(trimChars);
+            var folder = GetAttribute(element, "folder", false).TrimEnd(trimChars);
             if (folder.Length > 0)
                 folder += "/";
             var title = GetAttribute(element, "title", true);
@@ -281,11 +273,11 @@ namespace BrandingTool
             }
         }
 
-        public static void UploadPageLayout(ClientContext clientContext, XElement element)
+        private static void UploadPageLayout(ClientContext clientContext, XElement element)
         {
             string rootPath = GetAttribute(element, "rootPath");
             string filePath = GetFullPath(rootPath, GetAttribute(element, "filePath", true));
-            string folder = "";  // GetAttribute(element, "folder", false).TrimEnd(trimChars);
+            string folder = GetAttribute(element, "folder", false).TrimEnd(trimChars);
             string title = GetAttribute(element, "title");
             string description = GetAttribute(element, "description");
             string associatedContentTypeID = GetAttribute(element, "associatedContentTypeID", true);
@@ -293,7 +285,7 @@ namespace BrandingTool
             clientContext.Web.DeployPageLayout(filePath, title, description, associatedContentTypeID, folder);
         }
 
-        public static void UploadFile(ClientContext clientContext, XElement element)
+        private static void UploadFile(ClientContext clientContext, XElement element)
         {
             string rootPath = GetAttribute(element, "rootPath");
             string filePath = GetFullPath(rootPath, GetAttribute(element, "filePath", true));
@@ -349,7 +341,7 @@ namespace BrandingTool
             }
         }
 
-        public static void UploadTheme(ClientContext clientContext, XElement element)
+        private static void UploadTheme(ClientContext clientContext, XElement element)
         {
             string rootPath = GetAttribute(element, "rootPath");
             string themeName = GetAttribute(element, "themeName", true);
@@ -357,30 +349,56 @@ namespace BrandingTool
             string colorFilePath = GetFullPath(rootPath, GetAttribute(element, "colorFilePath"));
             string backgroundImagePath = GetFullPath(rootPath, GetAttribute(element, "backgroundImagePath"));
             string fontFilePath = GetFullPath(rootPath, GetAttribute(element, "fontFilePath"));
-            Console.WriteLine("{1} - Uploading theme and creating Composed Look \"{0}\"", themeName, Environment.NewLine);
-            clientContext.Web.DeployThemeToWeb(themeName, colorFilePath, fontFilePath, backgroundImagePath, masterPageName);
+            Console.WriteLine("{1} - Uploading theme files and creating Composed Look \"{0}\"", themeName, Environment.NewLine);
+            if (colorFilePath != "")
+            {
+                clientContext.Web.UploadThemeFile(colorFilePath);
+                colorFilePath = UrlUtility.Combine(clientContext.Web.ServerRelativeUrl, string.Format(Constants.THEMES_DIRECTORY, Path.GetFileName(colorFilePath)));
+            }
+            if (fontFilePath != "")
+            {
+                clientContext.Web.UploadThemeFile(fontFilePath);
+                fontFilePath = UrlUtility.Combine(clientContext.Web.ServerRelativeUrl, string.Format(Constants.THEMES_DIRECTORY, Path.GetFileName(fontFilePath)));
+            }
+            if (backgroundImagePath != "")
+            {
+                clientContext.Web.UploadThemeFile(backgroundImagePath);
+                backgroundImagePath = UrlUtility.Combine(clientContext.Web.ServerRelativeUrl, string.Format(Constants.THEMES_DIRECTORY, Path.GetFileName(backgroundImagePath)));
+            }
+            masterPageName = UrlUtility.Combine(clientContext.Web.ServerRelativeUrl, string.Format(Constants.MASTERPAGE_DIRECTORY, masterPageName));
+            CreateComposedLook(clientContext, themeName, masterPageName, colorFilePath, backgroundImagePath, fontFilePath);
         }
 
-        public static void CreateThemeByRelativeUrl(ClientContext clientContext, XElement element)
+        private static void CreateTheme(ClientContext clientContext, XElement element)
         {
-            string webUrl = GetAttribute(element, "webUrl");
             string themeName = GetAttribute(element, "themeName", true);
             string masterPageName = GetAttribute(element, "masterPageName", true);
-            string colorFileUrl = GetAttribute(element, "colorFileUrl");
-            string backgroundImageUrl = GetAttribute(element, "backgroundImageUrl");
-            string fontFileUrl = GetAttribute(element, "fontFileUrl");
+            string colorFilePath = GetAttribute(element, "colorFileUrl");
+            string backgroundImagePath = GetAttribute(element, "backgroundImageUrl");
+            string fontFilePath = GetAttribute(element, "fontFileUrl");
             Console.WriteLine("{1} - Creating Composed Look \"{0}\"", themeName, Environment.NewLine);
-            Web destinationWeb = clientContext.Web;
-            if (!String.IsNullOrEmpty(webUrl))
+            if (colorFilePath != "")
             {
-                destinationWeb = destinationWeb.GetWeb(webUrl);
-                clientContext.Load(destinationWeb);
-                clientContext.ExecuteQuery();
+                colorFilePath = UrlUtility.Combine(clientContext.Web.ServerRelativeUrl, string.Format(Constants.THEMES_DIRECTORY, Path.GetFileName(colorFilePath)));
             }
-            destinationWeb.DeployThemeToWeb(themeName, colorFileUrl, backgroundImageUrl, fontFileUrl, masterPageName);
+            if (fontFilePath != "")
+            {
+                fontFilePath = UrlUtility.Combine(clientContext.Web.ServerRelativeUrl, string.Format(Constants.THEMES_DIRECTORY, Path.GetFileName(fontFilePath)));
+            }
+            if (backgroundImagePath != "")
+            {
+                backgroundImagePath = UrlUtility.Combine(clientContext.Web.ServerRelativeUrl, backgroundImagePath);
+            }
+            masterPageName = UrlUtility.Combine(clientContext.Web.ServerRelativeUrl, string.Format(Constants.MASTERPAGE_DIRECTORY, masterPageName));
+            CreateComposedLook(clientContext, themeName, masterPageName, colorFilePath, backgroundImagePath, fontFilePath);
         }
 
-        public static void ApplyTheme(ClientContext clientContext, XElement element)
+        private static void CreateComposedLook(ClientContext clientContext, string themeName, string masterPageName, string colorFilePath, string backgroundImagePath, string fontFilePath)
+        {
+            clientContext.Web.CreateComposedLookByUrl(themeName, colorFilePath, fontFilePath, backgroundImagePath, masterPageName);
+        }
+
+        private static void ApplyTheme(ClientContext clientContext, XElement element)
         {
             string themeName = GetAttribute(element, "themeName", true);
             string subWebUrl = GetAttribute(element, "subWebUrl");
@@ -390,7 +408,7 @@ namespace BrandingTool
             ApplyThemeToWeb(clientContext, themeName, subWebUrl, applyToSubWebs, targetWeb);
         }
 
-        public static void ApplyThemeToWeb(ClientContext clientContext, string themeName, string subWebUrl, bool applyToSubWebs, Web targetWeb)
+        private static void ApplyThemeToWeb(ClientContext clientContext, string themeName, string subWebUrl, bool applyToSubWebs, Web targetWeb)
         {
             if (!String.IsNullOrEmpty(subWebUrl))
             {
@@ -545,5 +563,8 @@ namespace BrandingTool
     public static partial class Constants
     {
         internal const string HTMLMASTERPAGE_CONTENT_TYPE = "0x0101000F1C8B9E0EB4BE489F09807B2C53288F0054AD6EF48B9F7B45A142F8173F171BD10003D357F861E29844953D5CAA1D4D8A3A";
+        internal const string THEMES_DIRECTORY = "/_catalogs/theme/15/{0}";
+        internal const string MASTERPAGE_DIRECTORY = "/_catalogs/masterpage/{0}";
+
     }
 }
