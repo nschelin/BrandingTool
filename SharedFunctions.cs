@@ -55,17 +55,17 @@ namespace BrandingTool
             var defaultCredentials = branding.Element("credentials");
             if (defaultCredentials != null)
             {
-                defaultUsername = defaultCredentials.Attribute("username") == null ? "" : defaultCredentials.Attribute("username").Value;
-                defaultPassword = defaultCredentials.Attribute("password") == null ? "" : defaultCredentials.Attribute("password").Value;
+                defaultUsername = GetAttribute(defaultCredentials, "username");
+                defaultPassword = GetAttribute(defaultCredentials, "password");
             }
             foreach (var site in branding.Descendants("site"))
             {
-                var siteUrl = SharedFunctions.GetSiteUrl(SharedFunctions.GetAttribute(site, "url")).TrimEnd(trimChars) + "/";
-                site.Attribute("url").SetValue(siteUrl);
+                var siteUrl = GetSiteUrl(GetAttribute(site, "rootUrl")).TrimEnd(trimChars) + "/";
+                site.Attribute("rootUrl").SetValue(siteUrl);
                 var siteUsername = site.Attribute("username") == null ? defaultUsername : site.Attribute("username").Value;
                 var sitePassword = site.Attribute("password") == null ? defaultPassword : site.Attribute("password").Value;
 
-                string rootPath = SharedFunctions.GetAttribute(site, "rootPath");
+                string rootPath = GetAttribute(site, "rootPath");
                 if (rootPath != "")
                     defaultRootPath = rootPath;
 
