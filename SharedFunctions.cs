@@ -50,8 +50,8 @@ namespace BrandingTool
             string defaultRootPath = Path.GetFullPath(settingsFile);
             defaultRootPath = defaultRootPath.Substring(0, defaultRootPath.LastIndexOf("\\") + 1);
 
-            string defaultUsername = "";
-            string defaultPassword = "";
+            string defaultUsername = String.Empty;
+            string defaultPassword = String.Empty;
             var defaultCredentials = branding.Element("credentials");
             if (defaultCredentials != null)
             {
@@ -64,6 +64,15 @@ namespace BrandingTool
                 site.Attribute("rootUrl").SetValue(siteUrl);
                 var siteUsername = site.Attribute("username") == null ? defaultUsername : site.Attribute("username").Value;
                 var sitePassword = site.Attribute("password") == null ? defaultPassword : site.Attribute("password").Value;
+
+                if (siteUsername == "")
+                {
+                    siteUsername = GetUserName(siteUsername);
+                }
+                if (sitePassword == "")
+                {
+                    sitePassword = GetPassword(sitePassword);
+                }
 
                 string rootPath = GetAttribute(site, "rootPath");
                 if (rootPath != "")
@@ -108,11 +117,27 @@ namespace BrandingTool
 
         private static void Process_OnPrem(string defaultRootPath, System.Xml.Linq.XElement site, string siteUrl, string siteUsername, string sitePassword)
         {
-            Console.WriteLine("Updating Branding at {0}", siteUrl);
+            Console.WriteLine("{1}Updating Branding at {0}", siteUrl, Environment.NewLine);
+            string username = String.Empty;
+            string domain = String.Empty;
+            if (siteUsername.Contains("@"))
+            {
+                username = siteUsername.Substring(0, siteUsername.IndexOf("@"));
+                domain = siteUsername.Substring(siteUsername.IndexOf("@") + 1);
+            }
+            else if (siteUsername.Contains("\\"))
+            {
+                domain = siteUsername.Substring(0, siteUsername.IndexOf("\\"));
+                username = siteUsername.Substring(siteUsername.IndexOf("\\")+1);
+            } else
+            {
+                Console.WriteLine("{1}Login must be in the form domain/username or username@domain. Unable to use \"{0}\"", siteUsername, Environment.NewLine);
+                SharedFunctions.ExitProgram();
+            }
             try
             {
                 var am = new AuthenticationManager();
-                ClientContext cc = am.GetNetworkCredentialAuthenticatedContext(siteUrl, siteUsername.Substring(0, siteUsername.IndexOf("@")), sitePassword, siteUsername.Substring(siteUsername.IndexOf("@") + 1));
+                ClientContext cc = am.GetNetworkCredentialAuthenticatedContext(siteUrl, username, sitePassword, domain);
                 cc.Load(cc.Web);
                 cc.ExecuteQuery();
                 cc.Dispose();
@@ -123,7 +148,7 @@ namespace BrandingTool
                 SharedFunctions.ExitProgram();
             }
             var authManager = new AuthenticationManager();
-            using (ClientContext clientContext = authManager.GetNetworkCredentialAuthenticatedContext(siteUrl, siteUsername.Substring(0, siteUsername.IndexOf("@")), sitePassword, siteUsername.Substring(siteUsername.IndexOf("@") + 1)))
+            using (ClientContext clientContext = authManager.GetNetworkCredentialAuthenticatedContext(siteUrl, username, sitePassword, domain))
             {
                 clientContext.Load(clientContext.Web);
                 clientContext.ExecuteQuery();
@@ -489,10 +514,9 @@ namespace BrandingTool
             return strUserName;
         }
 
-        public static SecureString GetPassword(string strPwd = "")
+        public static String GetPassword(string strPwd = "")
         {
-            SecureString sStrPwd = new SecureString();
-
+            string sStrPwd = String.Empty;
             try
             {
                 Console.Write("SharePoint Password: ");
@@ -504,7 +528,7 @@ namespace BrandingTool
                         {
                             if (sStrPwd.Length > 0)
                             {
-                                sStrPwd.RemoveAt(sStrPwd.Length - 1);
+                                sStrPwd.Substring(0,sStrPwd.Length - 1);
                                 Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
                                 Console.Write(" ");
                                 Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
@@ -513,7 +537,7 @@ namespace BrandingTool
                         else if (keyInfo.Key != ConsoleKey.Enter)
                         {
                             Console.Write("*");
-                            sStrPwd.AppendChar(keyInfo.KeyChar);
+                            sStrPwd += keyInfo.KeyChar;
                         }
 
                     }
@@ -521,7 +545,7 @@ namespace BrandingTool
                 }
                 else
                 {
-                    Array.ForEach(strPwd.ToCharArray(), sStrPwd.AppendChar);
+                    //Array.ForEach(strPwd.ToCharArray(), sStrPwd.AppendChar);
                     Console.Write(new String('*', (int)(strPwd.Length * 1.8)));
                     Console.WriteLine();
                 }
@@ -532,7 +556,7 @@ namespace BrandingTool
                 Console.WriteLine(e.Message);
             }
 
-            return sStrPwd;
+            return strPwd;
         }
 
         public static string GetAttribute(XElement element, string attribute, bool required = false)
