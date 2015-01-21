@@ -15,6 +15,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{001C5B21-8ACA-4C3E-9DF1-6F5475B11C1C}"
 	ProjectSection(SolutionItems) = preProject
 		Branding Tool Instructions.docx = Branding Tool Instructions.docx
+		Branding Tool Instructions.html = Branding Tool Instructions.html
 		Instructions.txt = Instructions.txt
 	EndProjectSection
 EndProject
