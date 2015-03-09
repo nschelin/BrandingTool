@@ -15,6 +15,7 @@ namespace BrandingTool
 
         public static void RunProgram(string[] args, bool OnPrem = false)
         {
+
             if (OnPrem)
                 Console.WriteLine("BRANDING TOOL FOR SHAREPOINT ON PREMISES");
             else
